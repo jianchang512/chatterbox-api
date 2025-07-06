@@ -29,6 +29,7 @@
 我们为 Windows 用户准备了包含所有依赖的便携包 `win.7z`，大大简化了安装过程。
 
 1.  **下载并解压**: 从项目的 Releases 页面下载 `win.7z` 压缩包，并将其解压到任意位置（路径中最好不要包含中文）。
+	下载地址：[https://github.com/jianchang512/chatterbox-api/releases](https://github.com/jianchang512/chatterbox-api/releases)
 
 2.  **安装 C++ 构建工具 (强烈建议)**:
     -   进入解压后的 `tools` 文件夹，双击运行 `vs_BuildTools.exe`。
