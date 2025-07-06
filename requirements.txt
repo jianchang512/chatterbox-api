@@ -1,0 +1,5 @@
+chatterbox-tts
+torch
+torchaudio
+flask
+waitress

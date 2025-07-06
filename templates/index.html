@@ -1,0 +1,311 @@
+<!-- templates/index.html -->
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chatterbox TTS 服务</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background-color: #f4f7f9;
+            color: #333;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+        .container {
+            width: 100%;
+            max-width: 1200px;
+            background: #fff;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.1);
+        }
+        h1 {
+            text-align: center;
+            color: #1a237e;
+            margin-bottom: 25px;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            font-weight: 600;
+            color: #555;
+        }
+        textarea {
+            width: 100%;
+            padding: 12px;
+            border-radius: 8px;
+            border: 1px solid #ccc;
+            font-size: 16px;
+            min-height: 120px;
+            resize: vertical;
+            box-sizing: border-box;
+            transition: border-color 0.3s;
+        }
+        textarea:focus {
+            border-color: #3f51b5;
+            outline: none;
+        }
+        .file-input-wrapper {
+            position: relative;
+            overflow: hidden;
+            display: inline-block;
+            cursor: pointer;
+            padding: 10px 15px;
+            border: 1px dashed #ccc;
+            border-radius: 8px;
+            background-color: #f9f9f9;
+        }
+        .file-input-wrapper:hover {
+            border-color: #3f51b5;
+        }
+        input[type="file"] {
+            position: absolute;
+            left: 0;
+            top: 0;
+            opacity: 0;
+            width: 100%;
+            height: 100%;
+            cursor: pointer;
+        }
+		input[type="number"]{
+			line-height:25px;
+			margin-right:10px;
+			margin-left:5px;
+		}
+		.d-flex{
+			display:flex;
+			align-items:center
+			
+		}
+		
+        #file-name {
+            margin-left: 10px;
+            font-style: italic;
+            color: #777;
+        }
+        .submit-btn {
+            width: 100%;
+            padding: 15px;
+            font-size: 18px;
+            font-weight: bold;
+            color: #fff;
+            background-color: #3f51b5;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.3s, transform 0.1s;
+        }
+        .submit-btn:hover:not(:disabled) {
+            background-color: #303f9f;
+        }
+        .submit-btn:active:not(:disabled) {
+            transform: scale(0.98);
+        }
+        .submit-btn:disabled {
+            background-color: #9fa8da;
+            cursor: not-allowed;
+        }
+        .result-container {
+            margin-top: 30px;
+            display: none; /* Initially hidden */
+        }
+        audio {
+            width: 100%;
+            margin-bottom: 15px;
+        }
+        .download-link {
+            display: block;
+            text-align: center;
+            padding: 10px;
+            background: #e8eaf6;
+            color: #3f51b5;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 600;
+        }
+        .download-link:hover {
+            background: #c5cae9;
+        }
+        .status {
+            text-align: center;
+            margin-top: 20px;
+            font-weight: 500;
+            height: 24px; /* Reserve space to prevent layout shift */
+        }
+        .status.loading::after {
+            content: '...';
+            display: inline-block;
+            animation: BouncingDots 1.4s infinite ease-in-out both;
+        }
+        @keyframes BouncingDots {
+            0%, 80%, 100% { transform: scale(0); }
+            40% { transform: scale(1.0); }
+        }
+		#tips{
+			display:block;
+			width:30%;
+			max-width:600px;
+			min-width:200px;
+			text-align:center;
+			color:#777;
+			margin:15px auto;
+		}
+		#params-tip{
+			font-size:12px;color:#999;
+			margin:5px 10px 0;
+		}
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Chatterbox TTS 服务</h1>
+    <form id="tts-form">
+        <div class="form-group">
+            <label for="text-input">输入文本</label>
+            <textarea id="text-input" placeholder="在此输入您想转换的文字..." required>Hello, my friend, I hope your every day is filled with happiness and joy.</textarea>
+        </div>
+		<div class="d-flex">
+            <label for="cfg_weight">cfg_weight</label>
+			<input type="number" id="cfg_weight" value="0.5" min="0.0" max="1.0" step='0.05'>
+			<label for="exaggeration">exaggeration</label>
+			<input type="number" id="exaggeration" value="0.5" min="0.25" max="2.0" step='0.05'>
+        </div>
+		<div id="params-tip">		
+		<strong>cfg_weight: (范围 0.0 - 1.0)</strong> 控制语音的节奏。值越低，语速越慢、越从容。
+<strong>exaggeration: (范围 0.25 - 2.0)</strong> 控制语音的情感和语调夸张程度。值越高，情感越丰富。
+		</div>
+		
+        <div class="form-group d-flex">
+            <label for="audio-prompt">参考音频 (可选, 用于声音克隆) </label>
+            <div class="file-input-wrapper">
+                <span>选择文件</span>
+                <input type="file" id="audio-prompt" accept="audio/*">
+            </div>
+            <span id="file-name"></span>
+        </div>
+        <button type="submit" id="generate-btn" class="submit-btn">生成语音</button>
+    </form>
+    <div id="status" class="status"></div>
+    <div id="result-container" class="result-container">
+        <audio id="audio-player" controls></audio>
+        <a id="download-link" href="#" download="synthesis.mp3" class="download-link">下载 MP3</a>
+    </div>
+	
+	
+	<a href="https://github.com/jianchang512/chatterbox-api" target="_blank" id="tips">GitHub:jianchang512/chatterbox-api</a>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const ttsForm = document.getElementById('tts-form');
+    const textInput = document.getElementById('text-input');
+    const audioPromptInput = document.getElementById('audio-prompt');
+    const fileNameSpan = document.getElementById('file-name');
+    const generateBtn = document.getElementById('generate-btn');
+    const statusDiv = document.getElementById('status');
+    const resultContainer = document.getElementById('result-container');
+    const audioPlayer = document.getElementById('audio-player');
+    const downloadLink = document.getElementById('download-link');
+
+    // 更新显示的文件名
+    audioPromptInput.addEventListener('change', () => {
+        if (audioPromptInput.files.length > 0) {
+            fileNameSpan.textContent = audioPromptInput.files[0].name;
+        } else {
+            fileNameSpan.textContent = '未选择文件';
+        }
+    });
+
+    ttsForm.addEventListener('submit', async (event) => {
+        event.preventDefault(); // 阻止表单默认提交
+
+        const text = textInput.value.trim();
+        if (!text) {
+            alert('请输入要转换的文本！');
+            return;
+        }
+
+        // 禁用按钮并显示加载状态
+        generateBtn.disabled = true;
+        generateBtn.textContent = '生成中...';
+        statusDiv.textContent = '正在请求服务器，请稍候';
+        statusDiv.classList.add('loading');
+        resultContainer.style.display = 'none';
+		let cfg_weight=document.getElementById('cfg_weight').value
+		let exaggeration= String(document.getElementById('exaggeration').value)
+
+        const audioFile = audioPromptInput.files[0];
+
+        try {
+            let response;
+            if (audioFile) {
+                // 使用接口2：带参考音频
+                const formData = new FormData();
+                formData.append('input', text);
+                formData.append('response_format', 'mp3');
+                formData.append('exaggeration', exaggeration);
+                formData.append('cfg_weight', cfg_weight);
+                formData.append('audio_prompt', audioFile);
+
+                response = await fetch('/v2/audio/speech_with_prompt', {
+                    method: 'POST',
+                    body: formData,
+                });
+            } else {
+                // 使用接口1：兼容OpenAI
+                const payload = {
+                    input: text,
+					speed:cfg_weight,
+					instructions:exaggeration,
+                    model: 'chatterbox-tts', // 兼容参数
+                    response_format: 'mp3'   // 请求mp3格式
+                };
+                response = await fetch('/v1/audio/speech', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload),
+                });
+            }
+
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({error: '无法解析的服务器错误'}));
+                throw new Error(`服务器错误: ${response.status} - ${errorData.error || '未知错误'}`);
+            }
+
+            // 处理成功的音频流
+            const blob = await response.blob();
+            const audioUrl = URL.createObjectURL(blob);
+
+            audioPlayer.src = audioUrl;
+            downloadLink.href = audioUrl;
+
+            resultContainer.style.display = 'block';
+            statusDiv.textContent = '🎉 生成成功！';
+            statusDiv.style.color = 'green';
+
+        } catch (error) {
+            console.error('TTS Generation Error:', error);
+            statusDiv.textContent = `❌ 生成失败: ${error.message}`;
+            statusDiv.style.color = 'red';
+        } finally {
+            // 恢复按钮状态
+            generateBtn.disabled = false;
+            generateBtn.textContent = '生成语音';
+            statusDiv.classList.remove('loading');
+        }
+    });
+});
+</script>
+
+</body>
+</html>
