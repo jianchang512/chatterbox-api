@@ -29,11 +29,14 @@
 
 我们为 Windows 用户准备了包含所有依赖的便携包 `win.7z`，大大简化了安装过程。
 
-1.  **下载并解压**: 压缩包内含模型和所需环境文件，体积较大，分2个压缩卷下载，下载后全部选中解压即可，解压路径中最好不要包含中文
+1.  **下载并解压**: 
 
-	百度网盘下载地址(已含模型)：
+	- 百度网盘下载地址【内置模型共5.9G】：https://pan.baidu.com/s/1daWaP5hk6dVWZk2NicotMA?pwd=1wsd
+	  > 压缩包内含模型和所需环境文件，体积较大，分2个压缩卷下载，下载后全部选中解压即可，解压路径中最好不要包含中文
+
+	- 百度网盘下载地址【不含模型460MB启动后自动下载，需科学上网】：https://pan.baidu.com/s/1wLQb8YMD_Z_geRXJ_l-tlw?pwd=dbtp
 	
-	GitHub 下载地址【不含模型启动后自动下载】：
+	- GitHub 下载地址【不含模型460MB启动后自动下载，需科学上网】：https://github.com/jianchang512/chatterbox-api/releases/download/0.2/chatterbox-win-NoModels-1005.7z
 
 2.  **启动服务**:
     -  双击运行根目录下的 **`启动服务.bat`** 脚本。
