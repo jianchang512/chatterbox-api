@@ -2,9 +2,18 @@ host = '127.0.0.1'
 port = 5093
 threads = 4
 
+from pathlib import Path
+import os,time,shutil,sys
+import warnings
+warnings.filterwarnings("ignore", category=FutureWarning)
+#from chatterbox.tts import ChatterboxTTS
+ROOT_DIR=Path(os.getcwd()).as_posix()
+# 对于国内用户，使用Hugging Face镜像能显著提高下载速度
+os.environ['HF_HOME'] = ROOT_DIR + "/models"
+os.environ['HF_HUB_DISABLE_SYMLINKS_WARNING'] = 'true'
+os.environ['HF_HUB_DISABLE_PROGRESS_BARS'] = 'true'
+os.environ['HF_HUB_DOWNLOAD_TIMEOUT'] = "1200"
 
-import os,time,shutil
-import sys
 import subprocess
 import io
 import uuid
@@ -13,15 +22,11 @@ from flask import Flask, request, jsonify, send_file, render_template, make_resp
 from waitress import serve
 import torch
 import torchaudio as ta
-from pathlib import Path
 
-from chatterbox.tts import ChatterboxTTS
-ROOT_DIR=Path(os.getcwd()).as_posix()
-
-# 对于国内用户，使用Hugging Face镜像能显著提高下载速度
-os.environ['HF_ENDPOINT'] = 'https://hf-mirror.com'
 if sys.platform == 'win32':
     os.environ['PATH'] = ROOT_DIR + f';{ROOT_DIR}/ffmpeg;{ROOT_DIR}/tools;' + os.environ['PATH']
+from chatterbox.mtl_tts import ChatterboxMultilingualTTS as ChatterboxTTS
+
 # 检查ffmpeg是否安装
 def check_ffmpeg():
     """检查系统中是否安装了ffmpeg"""
@@ -167,8 +172,8 @@ def tts_openai_compatible():
     cfg_weight=float(data.get('speed',0.5))
     # instructions 用于接收 exaggeration
     exaggeration=float(data.get('instructions',0.5))
-    if lang != 'en':
-        return jsonify({"error": "Only support English"}), 400
+    #if lang != 'en':
+    #    return jsonify({"error": "Only support English"}), 400
 
 
     if not text:
@@ -178,7 +183,7 @@ def tts_openai_compatible():
 
     try:
         # 生成WAV音频
-        wav_tensor = model.generate(text,exaggeration=exaggeration,cfg_weight=cfg_weight)
+        wav_tensor = model.generate(text,exaggeration=exaggeration,cfg_weight=cfg_weight,language_id=lang)
 
         # 检查请求的响应格式，默认为mp3
         response_format = data.get('response_format', 'mp3').lower()
@@ -231,8 +236,8 @@ def tts_with_prompt():
 
     exaggeration=float(request.form.get('exaggeration',0.5))
     lang = request.form.get('language','en')
-    if lang != 'en':
-        return jsonify({"error": "Only support English"}), 400
+    #if lang != 'en':
+    #    return jsonify({"error": "Only support English"}), 400
     
     print(f"[APIv2] Received text: '{text[:50]}...' with audio prompt '{audio_file.filename}'")
 

@@ -10,6 +10,7 @@
 
 ## ✨ 功能特性
 
+- **支持 23种语言**
 - **两种 API 接口**:
     1.  **OpenAI 兼容接口**: `/v1/audio/speech`，可无缝对接到任何支持 OpenAI SDK 的现有工作流中。
     2.  **声音克隆接口**: `/v2/audio/speech_with_prompt`，通过上传一小段参考音频，即可生成具有相同音色的语音。
@@ -28,19 +29,14 @@
 
 我们为 Windows 用户准备了包含所有依赖的便携包 `win.7z`，大大简化了安装过程。
 
-1.  **下载并解压**: 从项目的 Releases 页面下载 `win.7z` 压缩包，并将其解压到任意位置（路径中最好不要包含中文）。
-	下载地址：[https://github.com/jianchang512/chatterbox-api/releases](https://github.com/jianchang512/chatterbox-api/releases)
+1.  **下载并解压**: 压缩包内含模型和所需环境文件，体积较大，分2个压缩卷下载，下载后全部选中解压即可，解压路径中最好不要包含中文
 
-2.  **安装 C++ 构建工具 (强烈建议)**:
-    -   进入解压后的 `tools` 文件夹，双击运行 `vs_BuildTools.exe`。
-    -   在弹出的安装界面中，勾选 **“使用 C++ 的桌面开发”** 选项，然后点击安装。
-    -   *这一步可以预先安装许多 Python 包在编译时所需的依赖，避免大量的安装错误。*
+	百度网盘下载地址(已含模型)：
+	
+	GitHub 下载地址【不含模型启动后自动下载】：
 
-3.  **启动服务**:
+2.  **启动服务**:
     -  双击运行根目录下的 **`启动服务.bat`** 脚本。
-    -  首次运行时，脚本会自动创建一个 Python 虚拟环境并安装所有必要的依赖包。这个过程可能需要几分钟，并且会自动下载 TTS 模型，请耐心等待。 
-	    ![](https://pvtr2.pyvideotrans.com/1751778549604_image.png)
-    -   安装完成后，服务会自动启动。
 
     当您在命令行窗口看到类似以下信息时，表示服务已成功启动：
     
@@ -54,6 +50,14 @@
 ### 方式二：macOS, Linux 和手动安装用户
 
 对于 macOS, Linux 用户，或者希望手动设置环境的 Windows 用户，请按照以下步骤操作。
+
+> ### 纯CPU运行注意
+>
+> 在 Windows和Linux上，如果想CPU运行，需要修改源码，虚拟环境下/Lib/site-packages/chatterbox/mtl_tts.py`
+> 
+> 搜索`torch.load(ckpt_dir / "ve.pt",` 改为 `torch.load(ckpt_dir / "ve.pt", map_location=device,`
+> 
+> 搜索 `torch.load(ckpt_dir / "s3gen.pt",` 改为 `torch.load(ckpt_dir / "s3gen.pt", map_location=device,`
 
 #### 1. 前置依赖
 

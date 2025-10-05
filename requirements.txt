@@ -1,3 +1,4 @@
+numpy
 chatterbox-tts
 torch
 torchaudio

@@ -2,6 +2,8 @@
 __pycache__/
 *.py[oc]
 build/
+runtime/
+models/
 dist/
 wheels/
 *.egg-info
@@ -9,4 +11,7 @@ tools
 # Virtual environments
 .venv
 venv
+*.7z
 *.exe
+*.001
+*.002
