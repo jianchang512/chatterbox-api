@@ -156,7 +156,7 @@ client = OpenAI(
 
 response = client.audio.speech.create(
     model="chatterbox-tts",   # 此参数会被忽略
-    voice="en",              # 用于传递语言代码，目前仅支持 'en'
+    voice="en",              # 
     speed=0.5,               # 对应 cfg_weight 参数
     input="Hello, this is a test from the OpenAI compatible API.",
     instructions="0.5"     # (可选) 对应 exaggeration 参数, 注意需要是字符串
