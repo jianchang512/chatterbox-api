@@ -11,10 +11,10 @@ set "VENV_PYTHON="%~dp0runtime\python.exe""
 
 
 call %VENV_PYTHON% -m pip uninstall  -y  torch torchaudio 
-call %VENV_PYTHON% -m pip install torch torchaudio --index-url https://download.pytorch.org/whl/cu126 
+call %VENV_PYTHON% -m pip install torch torchaudio --index-url https://download.pytorch.org/whl/cu128
 
 echo.
-echo( 安装 cuda12.6 完毕，请重新执行启动脚本
+echo( 安装 cuda12.8 完毕，请重新执行启动脚本
 echo.
 
 pause

@@ -2,8 +2,10 @@ host = '127.0.0.1'
 port = 5093
 threads = 4
 
-from pathlib import Path
 import os,time,shutil,sys
+#os.environ['htts_proxy']='http://127.0.0.1:10808'
+#os.environ['htt_proxy']='http://127.0.0.1:10808'
+from pathlib import Path
 import warnings
 warnings.filterwarnings("ignore", category=FutureWarning)
 #from chatterbox.tts import ChatterboxTTS
@@ -14,7 +16,7 @@ os.environ['HF_HUB_DISABLE_SYMLINKS_WARNING'] = 'true'
 os.environ['HF_HUB_DISABLE_PROGRESS_BARS'] = 'true'
 os.environ['HF_HUB_DOWNLOAD_TIMEOUT'] = "1200"
 
-import subprocess
+import subprocess,traceback
 import io
 import uuid
 import tempfile
@@ -22,6 +24,19 @@ from flask import Flask, request, jsonify, send_file, render_template, make_resp
 from waitress import serve
 import torch
 import torchaudio as ta
+
+try:
+    import soundfile as sf
+except ImportError:
+    print('No soundfile, exec cmd ` runtime\python -m pip install soundfile`')
+    sys.exit()
+
+try:    
+    from pydub import AudioSegment
+except ImportError:
+    print('No soundfile, exec cmd ` runtime\python -m pip install pydub`')
+    sys.exit()
+
 
 if sys.platform == 'win32':
     os.environ['PATH'] = ROOT_DIR + f';{ROOT_DIR}/ffmpeg;{ROOT_DIR}/tools;' + os.environ['PATH']
@@ -60,55 +75,6 @@ check_ffmpeg()
 model = load_tts_model()
 app = Flask(__name__)
 
-
-# --- 工具函数 ---
-def convert_wav_to_mp3(wav_tensor, sample_rate):
-    """
-    使用ffmpeg将WAV张量转换为MP3字节流 (使用 subprocess.run)。
-    """
-    # 1. 将PyTorch张量保存到内存中的WAV文件
-    wav_buffer = io.BytesIO()
-    ta.save(wav_buffer, wav_tensor, sample_rate, format="wav")
-    wav_buffer.seek(0)
-    wav_data_bytes = wav_buffer.read() # 读取为字节数据
-
-    # 2. 定义 ffmpeg 命令
-    command = [
-        'ffmpeg', 
-        '-i', 'pipe:0',      # 从标准输入读取
-        '-f', 'mp3',         # 指定输出格式为MP3
-        '-q:a', '2',         # 设置MP3音质 (0-9, 0最高)，2是很好的平衡
-        'pipe:1'             # 将输出写入标准输出
-    ]
-
-    try:
-        # 3. 使用 subprocess.run 执行转换
-        #    - input: 将WAV字节数据传递给ffmpeg的stdin
-        #    - capture_output: 捕获stdout和stderr
-        #    - check: 如果ffmpeg返回错误码，则自动抛出异常
-        result = subprocess.run(
-            command,
-            input=wav_data_bytes,
-            capture_output=True,
-            check=True
-        )
-        
-        # 如果成功，result.stdout 包含二进制的MP3数据
-        return io.BytesIO(result.stdout)
-
-    except subprocess.CalledProcessError as e:
-        # 如果ffmpeg执行失败 (check=True 抛出异常)
-        # 从字节解码stderr以显示可读的错误信息
-        stderr_output = e.stderr.decode('utf-8', errors='ignore')
-        error_message = f"ffmpeg MP3 conversion failed:\n{stderr_output}"
-        print(f"{error_message}")
-        raise RuntimeError(error_message) # 将其作为服务器内部错误重新抛出
-    
-    except FileNotFoundError:
-        # 如果 ffmpeg 命令本身都找不到
-        error_message = "ffmpeg not found. Please ensure ffmpeg is installed and in the system's PATH."
-        print(f"{error_message}")
-        raise RuntimeError(error_message)
 
 
 def convert_to_wav(input_path, output_path, sample_rate=16000):
@@ -188,27 +154,36 @@ def tts_openai_compatible():
         # 检查请求的响应格式，默认为mp3
         response_format = data.get('response_format', 'mp3').lower()
         download_name=f'{time.time()}'
-        if response_format == 'mp3':
-            # 转换为MP3并返回
-            mp3_buffer = convert_wav_to_mp3(wav_tensor, model.sr)
+
+        # 对于其他格式（如wav），直接返回
+        wav_buffer = io.BytesIO()
+        wav_tensor = wav_tensor.detach().cpu()
+        if wav_tensor.ndim == 2:
+            wav_np = wav_tensor.transpose(0, 1).numpy()
+        else:
+            wav_np = wav_tensor.numpy()
+         # 写入 WAV 格式到内存
+        sf.write(wav_buffer, wav_np, model.sr, format='wav')
+        wav_buffer.seek(0)
+        if response_format=='mp3':
+            mp3_buffer = io.BytesIO()
+            AudioSegment.from_file(wav_buffer, format="wav").export(mp3_buffer, format="mp3")
+            mp3_buffer.seek(0)
+
             return send_file(
                 mp3_buffer,
                 mimetype='audio/mpeg',
                 as_attachment=False,
                 download_name=f'{download_name}.mp3'
             )
-        else:
-            # 对于其他格式（如wav），直接返回
-            wav_buffer = io.BytesIO()
-            ta.save(wav_buffer, wav_tensor, model.sr, format="wav")
-            wav_buffer.seek(0)
-            return send_file(
-                wav_buffer,
-                mimetype='audio/wav',
-                as_attachment=False,
-                download_name=f'{download_name}.wav'
-            )
-            
+        
+        return send_file(
+            wav_buffer,
+            mimetype='audio/wav',
+            as_attachment=False,
+            download_name=f'{download_name}.wav'
+        )
+        
     except Exception as e:
         print(f"[APIv1] Error during TTS generation: {e}")
         return jsonify({"error": f"An internal error occurred: {str(e)}"}), 500
@@ -261,27 +236,34 @@ def tts_with_prompt():
         
         # --- Stage 4: Format and Return Response Based on Request ---
         download_name=f'{time.time()}'
+
+        print("   - Formatting response as WAV.")
+        wav_buffer = io.BytesIO()
+        wav_tensor = wav_tensor.detach().cpu()
+        if wav_tensor.ndim == 2:
+            wav_np = wav_tensor.transpose(0, 1).numpy()
+        else:
+            wav_np = wav_tensor.numpy()
+         # 写入 WAV 格式到内存
+        sf.write(wav_buffer, wav_np, model.sr, format='wav')
+        wav_buffer.seek(0)
         if response_format == 'mp3':
-            print("   - Formatting response as MP3.")
-            mp3_buffer = convert_wav_to_mp3(wav_tensor, model.sr)
+            mp3_buffer = io.BytesIO()
+            AudioSegment.from_file(wav_buffer, format="wav").export(mp3_buffer, format="mp3")
+            mp3_buffer.seek(0)
             return send_file(
                 mp3_buffer,
                 mimetype='audio/mpeg',
                 as_attachment=False,
                 download_name=f'{download_name}.mp3'
             )
-        else: # Default to WAV
-            print("   - Formatting response as WAV.")
-            wav_buffer = io.BytesIO()
-            # Note: We need torchaudio 'ta' imported, which should be at the top of the file
-            ta.save(wav_buffer, wav_tensor, model.sr, format="wav")
-            wav_buffer.seek(0) # IMPORTANT: Rewind buffer to the beginning before sending
-            return send_file(
-                wav_buffer,
-                mimetype='audio/wav',
-                as_attachment=False,
-                download_name=f'{download_name}.wav'
-            )
+
+        return send_file(
+            wav_buffer,
+            mimetype='audio/wav',
+            as_attachment=False,
+            download_name=f'{download_name}.wav'
+        )
 
     except Exception as e:
         print(f"[APIv2] An error occurred: {e}")

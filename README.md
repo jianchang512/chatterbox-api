@@ -103,7 +103,7 @@ python app.py
 
 1.  请先确保您已经成功运行过一次 `启动服务.bat`，以完成基础环境的安装。
 2.  双击运行 **`安装N卡GPU支持.bat`** 脚本。
-3.  脚本会自动卸载 CPU 版本的 PyTorch，并安装与 CUDA 12.6 兼容的 GPU 版本。
+3.  脚本会自动卸载 CPU 版本的 PyTorch，并安装与 CUDA 12.8 兼容的 GPU 版本。
 
 ### Linux 手动升级
 
