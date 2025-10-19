@@ -257,7 +257,7 @@ def tts_with_prompt():
 
         # --- Stage 3: Generate TTS using the converted WAV file ---
         print(f"   - Generating TTS with prompt: {temp_wav_path}")
-        wav_tensor = model.generate(text, audio_prompt_path=temp_wav_path,exaggeration=exaggeration,cfg_weight=cfg_weight)
+        wav_tensor = model.generate(text, audio_prompt_path=temp_wav_path,exaggeration=exaggeration,cfg_weight=cfg_weight,language_id=lang)
         
         # --- Stage 4: Format and Return Response Based on Request ---
         download_name=f'{time.time()}'
