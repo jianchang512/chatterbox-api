@@ -31,12 +31,12 @@
 
 1.  **下载并解压**: 
 
-	- 百度网盘下载地址【内置模型共5.9G】：https://pan.baidu.com/s/1daWaP5hk6dVWZk2NicotMA?pwd=1wsd
-	  > 压缩包内含模型和所需环境文件，体积较大，分2个压缩卷下载，下载后全部选中解压即可，解压路径中最好不要包含中文
+- 百度网盘下载地址【内置模型共5.9G】： https://pan.baidu.com/s/12Le6rhOQnBL-sNd0uGZ91A?pwd=t55t
+   > 压缩包内含模型和所需环境文件，体积较大，分2个压缩卷下载，下载后全部选中解压即可，解压路径中最好不要包含中文
 
-	- 百度网盘下载地址【不含模型460MB启动后自动下载，需科学上网】：https://pan.baidu.com/s/1wLQb8YMD_Z_geRXJ_l-tlw?pwd=dbtp
+- 百度网盘下载地址【不含模型460MB启动后自动下载，需科学上网】： https://pan.baidu.com/s/1g3w1jFHxe_IjqgasoiVB6w?pwd=nf8v
 	
-	- GitHub 下载地址【不含模型460MB启动后自动下载，需科学上网】：https://github.com/jianchang512/chatterbox-api/releases/download/0.2/chatterbox-win-NoModels-1005.7z
+- GitHub 下载地址【不含模型460MB启动后自动下载，需科学上网】：https://github.com/jianchang512/chatterbox-api/releases/download/0.2/1020-chatterbox-win-NO-Models.7z
 
 2.  **启动服务**:
     -  双击运行根目录下的 **`启动服务.bat`** 脚本。
@@ -64,7 +64,7 @@
 
 #### 1. 前置依赖
 
-- **Python**: 确保已安装 Python 3.9 或更高版本。
+- **Python**: 确保已安装 Python 3.10 或更高版本。
 - **ffmpeg**: 这是一个必需的音视频处理工具。
     -   **macOS (使用 Homebrew)**: `brew install ffmpeg`
     -   **Debian/Ubuntu**: `sudo apt-get update && sudo apt-get install ffmpeg`
