@@ -3,7 +3,7 @@ port = 5093
 threads = 4
 
 import os,time,shutil,sys
-#os.environ['htts_proxy']='http://127.0.0.1:10808'
+#os.environ['https_proxy']='http://127.0.0.1:10808'
 #os.environ['htt_proxy']='http://127.0.0.1:10808'
 from pathlib import Path
 import warnings
@@ -12,6 +12,7 @@ warnings.filterwarnings("ignore", category=FutureWarning)
 ROOT_DIR=Path(os.getcwd()).as_posix()
 # 对于国内用户，使用Hugging Face镜像能显著提高下载速度
 os.environ['HF_HOME'] = ROOT_DIR + "/models"
+os.environ['HF_ENDPOINT'] = "https://hf-mirror.com"
 os.environ['HF_HUB_DISABLE_SYMLINKS_WARNING'] = 'true'
 os.environ['HF_HUB_DISABLE_PROGRESS_BARS'] = 'true'
 os.environ['HF_HUB_DOWNLOAD_TIMEOUT'] = "1200"
@@ -63,11 +64,12 @@ def load_tts_model():
         print(f"Using device: {device}")
         
         # 从预训练模型加载
-        tts_model = ChatterboxTTS.from_pretrained(device=device)
+        tts_model = ChatterboxTTS.from_local(ROOT_DIR + "/models",device=device)
         print("模型加载完成.")
         return tts_model
     except Exception as e:
         print(f"FATAL: 模型加载失败: {e}")
+        print(traceback.format_exc())
         sys.exit(1)
 
 # --- 全局变量初始化 ---
